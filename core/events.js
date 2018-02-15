@@ -950,6 +950,21 @@ Blockly.Events.EndDrag = function(block, isOutside) {
   // If drag ends outside the blocks workspace, send the block XML
   if (isOutside) {
     this.xml = Blockly.Xml.blockToDom(block, true /* opt_noId */);
+    this.svg = block.svgGroup_.parentElement.parentElement.cloneNode(true /* deep */);
+    const getOffset = function ( el ) {
+        var _x = 0;
+        var _y = 0;
+        while( el && !isNaN( el.offsetLeft ) && !isNaN( el.offsetTop ) ) {
+            _x += el.offsetLeft - el.scrollLeft;
+            _y += el.offsetTop - el.scrollTop;
+            el = el.offsetParent;
+        }
+        return { top: _y, left: _x };
+    };
+    const position = getOffset(block.svgGroup_.parentElement.parentElement.parentElement);
+    this.svg.style.top = position.top;
+    this.svg.style.left = position.left;
+    document.body.appendChild(this.svg);
   }
 };
 goog.inherits(Blockly.Events.EndDrag, Blockly.Events.Abstract);
@@ -980,6 +995,9 @@ Blockly.Events.EndDrag.prototype.toJson = function() {
   if (this.xml) {
     json['xml'] = this.xml;
   }
+  if (this.svg) {
+    json['svg'] = this.svg;
+  }
   return json;
 };
 
@@ -991,6 +1009,7 @@ Blockly.Events.EndDrag.prototype.fromJson = function(json) {
   Blockly.Events.EndDrag.superClass_.fromJson.call(this, json);
   this.isOutside = json['isOutside'];
   this.xml = json['xml'];
+  this.svg = json['svg'];
 };
 
 /**
